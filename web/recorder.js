@@ -6,8 +6,9 @@ window.micRecorder = {
   sessionId: null,
   chunkIndex: 0,
   mimeType: null,
+  WEBHOOK_URL: 'https://nonmediative-suitably-ellen.ngrok-free.dev/webhook-test/neon-lecture',
 
-  start: async function (timesliceMs, onDataCallback) {
+  start: async function (timesliceMs) {
     try {
       // 1. Request Microphone Access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -22,45 +23,74 @@ window.micRecorder = {
         if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = 'audio/ogg;codecs=opus'; // Firefox fallback
           if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = ''; // Let browser choose default
+            mimeType = 'audio/webm'; // Force webm
           }
         }
       }
 
       const options = mimeType ? { mimeType } : {};
-      console.log(`Starting MediaRecorder with mimeType: ${mimeType || 'default'}`);
+      this.mimeType = mimeType;
+      console.log("🎤 mic start", mimeType);
 
       // 3. Initialize MediaRecorder
       this.mediaRecorder = new MediaRecorder(stream, options);
-      this.mimeType = this.mediaRecorder.mimeType || mimeType;
 
       // 4. Handle Data Available (Chunks)
       this.mediaRecorder.ondataavailable = async (event) => {
         if (event.data && event.data.size > 0) {
           const blob = event.data;
-          const buffer = await blob.arrayBuffer();
-          const uint8Array = new Uint8Array(buffer);
+          console.log("📦 chunk", this.chunkIndex, "size:", blob.size, "bytes");
 
-          // Pass data back to Dart
-          // onDataCallback(data, mimeType, chunkIndex, sessionId)
-          if (window.onMicData) {
-            window.onMicData(uint8Array, this.mimeType, this.chunkIndex, this.sessionId);
-          }
+          // Upload directly from JS
+          await this.uploadChunk(blob);
           this.chunkIndex++;
         }
       };
 
-      // 5. Start Recording
-      this.mediaRecorder.start(timesliceMs);
+      // 5. Start Recording with 1500ms timeslice
+      this.mediaRecorder.start(1500);
       return this.sessionId;
 
     } catch (err) {
-      console.error("Error starting mic recorder:", err);
+      console.error("❌ Error starting mic recorder:", err);
       throw err;
     }
   },
 
+  uploadChunk: async function (blob) {
+    try {
+      const fd = new FormData();
+      fd.append("audio", blob, `chunk_${this.chunkIndex}.webm`);
+      fd.append("chunkIndex", String(this.chunkIndex));
+      fd.append("sessionId", this.sessionId);
+      fd.append("mimeType", this.mimeType);
+      fd.append("source_lang", "en");
+      fd.append("target_lang", "ar");
+
+      console.log("🚀 POST to", this.WEBHOOK_URL, "chunk", this.chunkIndex);
+
+      const response = await fetch(this.WEBHOOK_URL, {
+        method: "POST",
+        body: fd
+      });
+
+      console.log("✅ Response", response.status, "for chunk", this.chunkIndex);
+
+      const data = await response.json();
+      console.log("📝 Response data:", data);
+
+      // Update UI via Dart callback if available
+      if (window.onMicData) {
+        window.onMicData(data.script || "", data.translation || "");
+      }
+
+    } catch (err) {
+      console.error("❌ Upload error for chunk", this.chunkIndex, ":", err);
+    }
+  },
+
   stop: function () {
+    console.log("⏹️ Stopping recorder");
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.stop();
     }
@@ -70,6 +100,6 @@ window.micRecorder = {
     this.mediaRecorder = null;
     this.stream = null;
     this.mimeType = null;
-    console.log("Mic recorder stopped");
+    console.log("✅ Mic recorder stopped");
   }
 };
