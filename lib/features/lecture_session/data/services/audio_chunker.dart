@@ -6,20 +6,21 @@ import 'audio_recording_service.dart';
 class AudioChunker {
   final AudioRecordingService _audioService;
   final Duration chunkDuration;
-  
+
   StreamSubscription? _rawStreamSubscription;
   final _chunkedStreamController = StreamController<Uint8List>.broadcast();
-  
+
   Stream<Uint8List> get chunkedStream => _chunkedStreamController.stream;
-  
+
   List<int> _buffer = [];
   Timer? _chunkTimer;
 
-  AudioChunker(this._audioService, {this.chunkDuration = const Duration(seconds: 4)});
+  AudioChunker(this._audioService,
+      {this.chunkDuration = const Duration(milliseconds: 500)});
 
   void start() {
     _rawStreamSubscription = _audioService.audioChunkStream.listen((data) {
-      _buffer.addAll(data);
+      _buffer.addAll(data.bytes);
     });
 
     // Strategy: Emit buffer every [chunkDuration]
@@ -34,7 +35,7 @@ class AudioChunker {
   void stop() {
     _chunkTimer?.cancel();
     _rawStreamSubscription?.cancel();
-    
+
     // Send remaining buffer
     if (_buffer.isNotEmpty) {
       _chunkedStreamController.add(Uint8List.fromList(_buffer));

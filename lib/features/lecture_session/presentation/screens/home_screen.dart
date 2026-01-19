@@ -65,7 +65,8 @@ class HomeScreen extends StatelessWidget {
                                 gradient: NeonColors.neonGradient,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: NeonColors.neonCyan.withValues(alpha: 0.5),
+                                    color: NeonColors.neonCyan
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 40,
                                     spreadRadius: 5,
                                   ),
@@ -89,7 +90,9 @@ class HomeScreen extends StatelessWidget {
                                 HapticUtils.mediumImpact();
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const LiveLectureScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const LiveLectureScreen()),
                                 );
                               },
                             ),
@@ -106,7 +109,9 @@ class HomeScreen extends StatelessWidget {
                                 HapticUtils.lightImpact();
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const MyLecturesScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MyLecturesScreen()),
                                 );
                               },
                             ),
@@ -132,7 +137,8 @@ class HomeScreen extends StatelessWidget {
                         HapticUtils.selectionClick();
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => const SettingsScreen()),
                         );
                       },
                       icon: const Icon(Icons.settings, size: 20),

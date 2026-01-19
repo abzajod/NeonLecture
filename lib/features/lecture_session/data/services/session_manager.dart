@@ -8,6 +8,7 @@ import 'n8n_service.dart';
 import '../../domain/entities/visual_aid.dart';
 import '../../domain/entities/lecture_note.dart';
 import '../../../lecture_library/data/repositories/lecture_repository.dart';
+import '../../domain/entities/audio_chunk.dart';
 
 /// Provider for the AudioRecordingService
 final audioServiceProvider = Provider((ref) => AudioRecordingService());
@@ -19,7 +20,8 @@ final n8nServiceProvider = Provider((ref) => N8nService());
 final lectureRepositoryProvider = Provider((ref) => LectureRepository());
 
 /// Provider for the SessionManager
-final sessionManagerProvider = StateNotifierProvider<SessionManager, SessionState>((ref) {
+final sessionManagerProvider =
+    StateNotifierProvider<SessionManager, SessionState>((ref) {
   final audioService = ref.watch(audioServiceProvider);
   final n8nService = ref.watch(n8nServiceProvider);
   final repository = ref.watch(lectureRepositoryProvider);
@@ -80,22 +82,25 @@ class SessionManager extends StateNotifier<SessionState> {
   Timer? _durationTimer;
   StreamSubscription? _chunkSubscription;
 
-  SessionManager(this._audioService, this._n8nService, this._repository) : super(SessionState());
+  SessionManager(this._audioService, this._n8nService, this._repository)
+      : super(SessionState());
 
   /// Start a new lecture session
   Future<void> startSession() async {
     final sessionId = const Uuid().v4();
-    
+
     try {
       await _audioService.startRecording();
-      
-      _chunker = AudioChunker(_audioService);
+
+      _chunker = AudioChunker(_audioService,
+          chunkDuration: const Duration(milliseconds: 500));
       _chunker?.start();
-      
-      _chunkSubscription = _chunker?.chunkedStream.listen(_onAudioChunkReceived);
-      
+
+      _chunkSubscription =
+          _chunker?.chunkedStream.listen(_onAudioChunkReceived);
+
       _startDurationTimer();
-      
+
       state = state.copyWith(
         sessionId: sessionId,
         isRecording: true,
@@ -116,7 +121,7 @@ class SessionManager extends StateNotifier<SessionState> {
     _chunker?.stop();
     _durationTimer?.cancel();
     _chunkSubscription?.cancel();
-    
+
     state = state.copyWith(isRecording: false, isPaused: false);
   }
 
@@ -135,14 +140,19 @@ class SessionManager extends StateNotifier<SessionState> {
   }
 
   void _onAudioChunkReceived(dynamic chunk) async {
-    print("Received audio chunk for session ${state.sessionId}, size: ${chunk.length}");
-    
+    if (chunk is! AudioChunk) return;
+
+    print(
+        "Received audio chunk for session ${state.sessionId}, index: ${chunk.index}, size: ${chunk.bytes.length}");
+
     try {
       final response = await _n8nService.sendAudioChunk(
-        sessionId: state.sessionId ?? '',
-        audioData: chunk,
+        sessionId: chunk.sessionId ?? state.sessionId ?? '',
+        audioData: chunk.bytes,
         sourceLang: 'en', // TODO: Get from settings
         targetLang: 'ar', // TODO: Get from settings
+        chunkIndex: chunk.index,
+        mimeType: chunk.mimeType,
       );
 
       final originalText = response['original_text'] as String?;
@@ -153,7 +163,7 @@ class SessionManager extends StateNotifier<SessionState> {
           transcript: [...state.transcript, originalText],
           translatedText: [...state.translatedText, translatedText ?? '...'],
         );
-        
+
         // Phase 5: Check for keywords in the new original text
         _checkForKeywords(originalText);
       }
@@ -174,13 +184,15 @@ class SessionManager extends StateNotifier<SessionState> {
         sessionId: state.sessionId ?? '',
         keywords: keywords,
       );
-      
+
       if (aids.isNotEmpty) {
-        final newAids = aids.map((a) => VisualAid(
-          keyword: a['keyword'] ?? '',
-          imageUrl: a['image_url'] ?? '',
-          caption: a['caption'] ?? '',
-        )).toList();
+        final newAids = aids
+            .map((a) => VisualAid(
+                  keyword: a['keyword'] ?? '',
+                  imageUrl: a['image_url'] ?? '',
+                  caption: a['caption'] ?? '',
+                ))
+            .toList();
 
         state = state.copyWith(
           visualAids: [...state.visualAids, ...newAids],
@@ -193,10 +205,10 @@ class SessionManager extends StateNotifier<SessionState> {
   Future<LectureNote?> finalizeSession() async {
     try {
       await stopSession();
-      
+
       // In Phase 3, we would call:
       // final summary = await _n8nService.generateSummary(...);
-      
+
       // For now, return a mock LectureNote
       final note = LectureNote(
         id: state.sessionId ?? "",
@@ -211,10 +223,10 @@ class SessionManager extends StateNotifier<SessionState> {
         sourceLanguage: "en",
         targetLanguage: "ar",
       );
-      
+
       // Save lecture to local database
       await _repository.saveLecture(note);
-      
+
       return note;
     } catch (e) {
       debugPrint("Error finalizing session: $e");
@@ -225,7 +237,8 @@ class SessionManager extends StateNotifier<SessionState> {
   void _startDurationTimer() {
     _durationTimer?.cancel();
     _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      state = state.copyWith(duration: state.duration + const Duration(seconds: 1));
+      state =
+          state.copyWith(duration: state.duration + const Duration(seconds: 1));
     });
   }
 

@@ -2,6 +2,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 import '../../../../core/utils/permission_utils.dart';
+import '../../domain/entities/audio_chunk.dart';
+
+// Conditional import for web interop
+import 'dart:js_interop';
+import '../../../../core/interop/web_recorder_interop.dart'
+    if (dart.library.io) '../../../../core/interop/stub_web_recorder_interop.dart';
 
 /// Service responsible for recording audio and emitting chunks
 class AudioRecordingService {
@@ -9,43 +15,55 @@ class AudioRecordingService {
   StreamSubscription<Uint8List>? _audioStreamSubscription;
 
   // Controller for emitting audio chunks
-  final _chunkController = StreamController<Uint8List>.broadcast();
-  Stream<Uint8List> get audioChunkStream => _chunkController.stream;
+  final _chunkController = StreamController<AudioChunk>.broadcast();
+  Stream<AudioChunk> get audioChunkStream => _chunkController.stream;
 
   bool _isRecording = false;
   bool get isRecording => _isRecording;
+
+  // Web specific state
+  String? _sessionId;
+  int _mobileChunkIndex = 0;
 
   /// Start recording audio and streaming chunks
   Future<void> startRecording() async {
     if (_isRecording) return;
 
-    final hasPermission = await PermissionUtils.requestMicrophonePermission();
-    if (!hasPermission) {
-      throw Exception('Microphone permission not granted');
+    if (!kIsWeb) {
+      final hasPermission = await PermissionUtils.requestMicrophonePermission();
+      if (!hasPermission) {
+        throw Exception('Microphone permission not granted');
+      }
     }
 
     try {
-      // Configuration for high quality STT
-      const config = RecordConfig(
-        encoder: AudioEncoder.wav, // Using WAV for better STT accuracy
-        numChannels: 1,
-        sampleRate: 16000,
-      );
-
       if (kIsWeb) {
-        // For web, we might use a different approach or stream directly
-        // But the record package supports web streaming
-        final stream = await _recorder.startStream(config);
-        _audioStreamSubscription = stream.listen((chunk) {
-          _chunkController.add(Uint8List.fromList(chunk));
-        });
+        // Native Web Recording
+        _setupWebCallback();
+
+        // Start JS recorder with 1500ms timeslice
+        final promise = micRecorder.start(1500);
+        final sessionId = await promise.toDart;
+        _sessionId = sessionId.toDart;
+
+        debugPrint('Web recording started, session: $_sessionId');
       } else {
-        // On mobile, we can also stream or record to file
-        // To support "chunks", we can either use startStream or manually split files
-        // startStream is more efficient for real-time STT
+        // Mobile Recording
+        _mobileChunkIndex = 0;
+        const config = RecordConfig(
+          encoder: AudioEncoder.wav,
+          numChannels: 1,
+          sampleRate: 16000,
+        );
         final stream = await _recorder.startStream(config);
         _audioStreamSubscription = stream.listen((chunk) {
-          _chunkController.add(Uint8List.fromList(chunk));
+          // On mobile, we emit raw chunks with a dummy index or handle accumulation in AudioChunker
+          // However, to satisfy the Stream<AudioChunk> signature:
+          _chunkController.add(AudioChunk(
+            bytes: Uint8List.fromList(chunk),
+            index: _mobileChunkIndex++, // Incrementing index for raw stream
+            mimeType: 'audio/wav',
+          ));
         });
       }
 
@@ -58,13 +76,39 @@ class AudioRecordingService {
     }
   }
 
+  void _setupWebCallback() {
+    // Define the callback function using toJS
+    onMicData = ((JSObject data, JSString mimeType, JSNumber index,
+        JSString sessionId) {
+      if (data.isA<JSUint8Array>()) {
+        final array = data as JSUint8Array;
+        final dartData = array.toDart;
+
+        // Fix: Use index.toDartDouble.toInt() for JSNumber
+        final chunkIndex = index.toDartDouble.toInt();
+
+        _chunkController.add(AudioChunk(
+          bytes: dartData,
+          index: chunkIndex,
+          mimeType: mimeType.toDart,
+          sessionId: sessionId.toDart,
+        ));
+        debugPrint("Received JS Chunk $chunkIndex, size: ${dartData.length}");
+      }
+    }).toJS;
+  }
+
   /// Stop recording
   Future<void> stopRecording() async {
     if (!_isRecording) return;
 
     try {
-      await _audioStreamSubscription?.cancel();
-      await _recorder.stop();
+      if (kIsWeb) {
+        micRecorder.stop();
+      } else {
+        await _audioStreamSubscription?.cancel();
+        await _recorder.stop();
+      }
       _isRecording = false;
       debugPrint('Audio recording stopped.');
     } catch (e) {
@@ -74,6 +118,8 @@ class AudioRecordingService {
 
   /// Pause recording
   Future<void> pauseRecording() async {
+    if (kIsWeb) return;
+
     if (!_isRecording) return;
     try {
       await _recorder.pause();
@@ -85,6 +131,8 @@ class AudioRecordingService {
 
   /// Resume recording
   Future<void> resumeRecording() async {
+    if (kIsWeb) return;
+
     if (!_isRecording) return;
     try {
       await _recorder.resume();
@@ -96,8 +144,9 @@ class AudioRecordingService {
 
   /// Clean up resources
   void dispose() {
+    stopRecording();
     _audioStreamSubscription?.cancel();
     _chunkController.close();
-    _recorder.dispose();
+    if (!kIsWeb) _recorder.dispose();
   }
 }

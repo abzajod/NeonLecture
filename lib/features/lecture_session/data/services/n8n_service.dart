@@ -28,6 +28,8 @@ class N8nService {
     required List<int> audioData,
     required String sourceLang,
     required String targetLang,
+    int? chunkIndex,
+    String? mimeType,
   }) async {
     if (!EnvConfig.isConfigured) {
       // Mock response if not configured
@@ -43,9 +45,15 @@ class N8nService {
     try {
       final formData = FormData.fromMap({
         'session_id': sessionId,
-        'audio': MultipartFile.fromBytes(audioData, filename: 'chunk.wav'),
+        'audio': MultipartFile.fromBytes(
+          audioData,
+          filename: 'chunk_${chunkIndex ?? 0}.wav',
+          contentType: mimeType != null ? DioMediaType.parse(mimeType) : null,
+        ),
         'source_lang': sourceLang,
         'target_lang': targetLang,
+        if (chunkIndex != null) 'chunk_index': chunkIndex,
+        if (mimeType != null) 'mime_type': mimeType,
       });
 
       final response = await _dio.post(
