@@ -43,21 +43,28 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
               // Search Bar
               _buildSearchBar(),
               const SizedBox(height: 24),
-              
+
               Text(
                 'Past Sessions',
-                style: NeonTextStyles.headlineMedium.copyWith(color: NeonColors.neonPurple),
+                style: NeonTextStyles.headlineMedium
+                    .copyWith(color: NeonColors.neonPurple),
               ),
               const SizedBox(height: 16),
               Expanded(
                 child: ValueListenableBuilder(
                   valueListenable: repository.lecturesListenable,
                   builder: (context, Box<LectureNote> box, _) {
-                    final allLectures = box.values.toList()..sort((a, b) => b.date.compareTo(a.date));
-                    final filteredLectures = allLectures.where((l) => 
-                      l.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                      l.originalTranscript.toLowerCase().contains(_searchQuery.toLowerCase())
-                    ).toList();
+                    final allLectures = box.values.toList()
+                      ..sort((a, b) => b.date.compareTo(a.date));
+                    final filteredLectures = allLectures
+                        .where((l) =>
+                            l.title
+                                .toLowerCase()
+                                .contains(_searchQuery.toLowerCase()) ||
+                            l.originalTranscript
+                                .toLowerCase()
+                                .contains(_searchQuery.toLowerCase()))
+                        .toList();
 
                     if (filteredLectures.isEmpty) {
                       return _buildEmptyState();
@@ -65,9 +72,11 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
 
                     return ListView.separated(
                       itemCount: filteredLectures.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
                       itemBuilder: (context, index) {
-                        return _buildLectureCard(context, filteredLectures[index]);
+                        return _buildLectureCard(
+                            context, filteredLectures[index]);
                       },
                     );
                   },
@@ -94,7 +103,8 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
           hintText: 'Search lectures...',
           prefixIcon: const Icon(Icons.search, color: NeonColors.neonCyan),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
         onChanged: (value) {
           setState(() {
@@ -110,11 +120,13 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.library_books_outlined, size: 64, color: NeonColors.textTertiary),
+          Icon(Icons.library_books_outlined,
+              size: 64, color: NeonColors.textTertiary),
           const SizedBox(height: 16),
           Text(
             'No lectures saved yet.',
-            style: NeonTextStyles.bodyLarge.copyWith(color: NeonColors.textTertiary),
+            style: NeonTextStyles.bodyLarge
+                .copyWith(color: NeonColors.textTertiary),
           ),
         ],
       ),
@@ -127,7 +139,8 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => LectureDetailScreen(note: note)),
+          MaterialPageRoute(
+              builder: (context) => LectureDetailScreen(note: note)),
         );
       },
       child: Column(
@@ -138,27 +151,30 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
             children: [
               Expanded(
                 child: Text(
-                  note.title, 
+                  note.title,
                   style: NeonTextStyles.headlineSmall,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
-                "${note.date.year}-${note.date.month.toString().padLeft(2, '0')}-${note.date.day.toString().padLeft(2, '0')}", 
+                "${note.date.year}-${note.date.month.toString().padLeft(2, '0')}-${note.date.day.toString().padLeft(2, '0')}",
                 style: NeonTextStyles.labelSmall,
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: NeonColors.error, size: 20),
+                icon: const Icon(Icons.delete_outline,
+                    color: NeonColors.error, size: 20),
                 onPressed: () => _confirmDelete(context, ref, note.id),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            note.originalTranscript.length > 100 
+            note.originalTranscript.length > 100
                 ? "${note.originalTranscript.substring(0, 100)}..."
-                : note.originalTranscript.isEmpty ? "No transcript recorded." : note.originalTranscript,
+                : note.originalTranscript.isEmpty
+                    ? "No transcript recorded."
+                    : note.originalTranscript,
             style: NeonTextStyles.bodyMedium,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -166,7 +182,8 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildBadge(Icons.translate, '${note.sourceLanguage.toUpperCase()} → ${note.targetLanguage.toUpperCase()}'),
+              _buildBadge(Icons.translate,
+                  '${note.sourceLanguage.toUpperCase()} → ${note.targetLanguage.toUpperCase()}'),
               const SizedBox(width: 8),
               _buildBadge(Icons.timer, '${note.duration.inMinutes} min'),
               const SizedBox(width: 8),
@@ -182,16 +199,18 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: NeonColors.neonCyan.withOpacity(0.1),
+        color: NeonColors.neonCyan.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: NeonColors.neonCyan.withOpacity(0.3)),
+        border: Border.all(color: NeonColors.neonCyan.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: NeonColors.neonCyan),
           const SizedBox(width: 4),
-          Text(text, style: NeonTextStyles.labelSmall.copyWith(color: NeonColors.neonCyan)),
+          Text(text,
+              style: NeonTextStyles.labelSmall
+                  .copyWith(color: NeonColors.neonCyan)),
         ],
       ),
     );
@@ -202,8 +221,11 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: NeonColors.darkBg,
-        title: Text('Delete Lecture?', style: NeonTextStyles.headlineSmall.copyWith(color: NeonColors.error)),
-        content: Text('This action cannot be undone.', style: NeonTextStyles.bodyMedium),
+        title: Text('Delete Lecture?',
+            style:
+                NeonTextStyles.headlineSmall.copyWith(color: NeonColors.error)),
+        content: Text('This action cannot be undone.',
+            style: NeonTextStyles.bodyMedium),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -215,7 +237,9 @@ class _MyLecturesScreenState extends ConsumerState<MyLecturesScreen> {
               Navigator.pop(context);
               setState(() {}); // Refresh list
             },
-            child: Text('DELETE', style: NeonTextStyles.labelLarge.copyWith(color: NeonColors.error)),
+            child: Text('DELETE',
+                style: NeonTextStyles.labelLarge
+                    .copyWith(color: NeonColors.error)),
           ),
         ],
       ),

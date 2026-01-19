@@ -36,7 +36,6 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'English → Arabic',
               onTap: () {},
             ),
-            
             const SizedBox(height: 32),
             _buildSectionHeader('FEEDBACK & EXPERIENCE'),
             _buildSwitchCard(
@@ -57,7 +56,6 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (val) => notifier.toggleAutoScroll(val),
               icon: Icons.history,
             ),
-            
             const SizedBox(height: 32),
             _buildSectionHeader('ACCOUNT'),
             _buildSettingCard(
@@ -92,7 +90,7 @@ class SettingsScreen extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: NeonCard(
-        borderColor: NeonColors.neonCyan.withOpacity(0.3),
+        borderColor: NeonColors.neonCyan.withValues(alpha: 0.3),
         padding: const EdgeInsets.all(20),
         onTap: onTap,
         child: Row(
@@ -101,7 +99,8 @@ class SettingsScreen extends ConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: NeonTextStyles.bodyLarge.copyWith(color: textColor)),
+                Text(title,
+                    style: NeonTextStyles.bodyLarge.copyWith(color: textColor)),
                 Text(subtitle, style: NeonTextStyles.bodySmall),
               ],
             ),
@@ -121,7 +120,7 @@ class SettingsScreen extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: NeonCard(
-        borderColor: NeonColors.neonPurple.withOpacity(0.3),
+        borderColor: NeonColors.neonPurple.withValues(alpha: 0.3),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(
           children: [

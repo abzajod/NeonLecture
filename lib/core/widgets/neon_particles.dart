@@ -15,7 +15,8 @@ class NeonParticles extends StatefulWidget {
   State<NeonParticles> createState() => _NeonParticlesState();
 }
 
-class _NeonParticlesState extends State<NeonParticles> with SingleTickerProviderStateMixin {
+class _NeonParticlesState extends State<NeonParticles>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final List<Particle> _particles = [];
   final Random _random = Random();
@@ -31,7 +32,8 @@ class _NeonParticlesState extends State<NeonParticles> with SingleTickerProvider
     for (int i = 0; i < widget.count; i++) {
       _particles.add(Particle(
         position: Offset(_random.nextDouble(), _random.nextDouble()),
-        velocity: Offset((_random.nextDouble() - 0.5) * 0.002, (_random.nextDouble() - 0.5) * 0.002),
+        velocity: Offset((_random.nextDouble() - 0.5) * 0.002,
+            (_random.nextDouble() - 0.5) * 0.002),
         size: _random.nextDouble() * 3 + 1,
         opacity: _random.nextDouble() * 0.5 + 0.2,
       ));
@@ -96,9 +98,9 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var p in particles) {
       final paint = Paint()
-        ..color = color.withOpacity(p.opacity)
+        ..color = color.withValues(alpha: p.opacity)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, p.size);
-      
+
       canvas.drawCircle(
         Offset(p.position.dx * size.width, p.position.dy * size.height),
         p.size,

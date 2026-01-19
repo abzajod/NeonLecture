@@ -21,7 +21,9 @@ class LiveLectureScreen extends ConsumerWidget {
         title: Text(
           sessionState.isRecording ? 'LIVE SESSION' : 'NEW SESSION',
           style: NeonTextStyles.headlineMedium.copyWith(
-            color: sessionState.isRecording ? NeonColors.error : NeonColors.neonCyan,
+            color: sessionState.isRecording
+                ? NeonColors.error
+                : NeonColors.neonCyan,
           ),
         ),
         actions: [
@@ -78,14 +80,14 @@ class LiveLectureScreen extends ConsumerWidget {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: NeonColors.darkBg.withOpacity(0.8),
+        color: NeonColors.darkBg.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: NeonColors.neonPurple.withOpacity(0.5),
+          color: NeonColors.neonPurple.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -109,14 +111,15 @@ class LiveLectureScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildControls(BuildContext context, SessionState state, SessionManager manager) {
+  Widget _buildControls(
+      BuildContext context, SessionState state, SessionManager manager) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: NeonColors.darkBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -136,9 +139,10 @@ class LiveLectureScreen extends ConsumerWidget {
             // Stop button
             IconButton(
               onPressed: () => manager.stopSession(),
-              icon: const Icon(Icons.stop_circle, size: 64, color: NeonColors.error),
+              icon: const Icon(Icons.stop_circle,
+                  size: 64, color: NeonColors.error),
             ),
-            
+
             // Pause/Resume
             IconButton(
               onPressed: () {
@@ -164,9 +168,9 @@ class LiveLectureScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: NeonColors.error.withOpacity(0.1),
+        color: NeonColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: NeonColors.error.withOpacity(0.5)),
+        border: Border.all(color: NeonColors.error.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

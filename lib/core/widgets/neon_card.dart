@@ -25,12 +25,12 @@ class NeonCard extends StatelessWidget {
         gradient: NeonColors.cardGradient,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: glowColor.withOpacity(0.5),
+          color: glowColor.withValues(alpha: 0.5),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withOpacity(0.2),
+            color: glowColor.withValues(alpha: 0.2),
             blurRadius: 15,
             spreadRadius: 1,
           ),

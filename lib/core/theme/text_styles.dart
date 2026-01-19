@@ -14,7 +14,7 @@ class NeonTextStyles {
     height: 1.2,
     shadows: [
       Shadow(
-        color: NeonColors.neonCyan.withOpacity(0.5),
+        color: NeonColors.neonCyan.withValues(alpha: 0.5),
         blurRadius: 20,
       ),
     ],
@@ -26,7 +26,7 @@ class NeonTextStyles {
     color: NeonColors.textPrimary,
     shadows: [
       Shadow(
-        color: NeonColors.neonPurple.withOpacity(0.4),
+        color: NeonColors.neonPurple.withValues(alpha: 0.4),
         blurRadius: 15,
       ),
     ],
@@ -109,7 +109,7 @@ class NeonTextStyles {
     height: 1.6,
     shadows: [
       Shadow(
-        color: NeonColors.neonCyan.withOpacity(0.3),
+        color: NeonColors.neonCyan.withValues(alpha: 0.3),
         blurRadius: 10,
       ),
     ],
@@ -122,7 +122,7 @@ class NeonTextStyles {
     height: 1.6,
     shadows: [
       Shadow(
-        color: NeonColors.neonPurple.withOpacity(0.3),
+        color: NeonColors.neonPurple.withValues(alpha: 0.3),
         blurRadius: 10,
       ),
     ],
@@ -137,7 +137,7 @@ class NeonTextStyles {
 
   static TextStyle caption = GoogleFonts.inter(
     fontSize: 11,
-   fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w400,
     color: NeonColors.textTertiary,
   );
 }

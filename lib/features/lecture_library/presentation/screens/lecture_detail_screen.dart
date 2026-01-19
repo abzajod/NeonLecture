@@ -112,7 +112,7 @@ class LectureDetailScreen extends StatelessWidget {
 
   Widget _buildTranscriptView(String text) {
     return NeonCard(
-      borderColor: NeonColors.neonPurple.withOpacity(0.3),
+      borderColor: NeonColors.neonPurple.withValues(alpha: 0.3),
       child: SingleChildScrollView(
         child: Text(
           text,
@@ -122,7 +122,7 @@ class LectureDetailScreen extends StatelessWidget {
     );
   }
 
-  void _shareNote(LectureNote note) {
+  void _shareNote(LectureNote note) async {
     final text = '''
 ${note.title}
 Date: ${note.date}
@@ -137,6 +137,6 @@ TRANSLATED TRANSCRIPT:
 ${note.translatedTranscript}
     ''';
 
-    Share.share(text, subject: note.title);
+    await Share.share(text, subject: note.title);
   }
 }

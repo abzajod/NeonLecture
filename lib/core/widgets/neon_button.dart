@@ -13,7 +13,7 @@ class NeonButton extends StatelessWidget {
   final bool isOutlined;
 
   const NeonButton({
-    super. key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.color,
@@ -30,18 +30,22 @@ class NeonButton extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: isOutlined ? null : LinearGradient(
-          colors: [buttonColor, buttonColor.withOpacity(0.7)],
-        ),
+        gradient: isOutlined
+            ? null
+            : LinearGradient(
+                colors: [buttonColor, buttonColor.withValues(alpha: 0.7)],
+              ),
         borderRadius: BorderRadius.circular(12),
         border: isOutlined ? Border.all(color: buttonColor, width: 2) : null,
-        boxShadow: isOutlined ? null : [
-          BoxShadow(
-            color: buttonColor.withOpacity(0.5),
-            blurRadius: 20,
-            spreadRadius: 1,
-          ),
-        ],
+        boxShadow: isOutlined
+            ? null
+            : [
+                BoxShadow(
+                  color: buttonColor.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 1,
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
