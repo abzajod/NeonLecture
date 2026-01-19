@@ -9,11 +9,11 @@ class N8nService {
     _dio.options.baseUrl = EnvConfig.n8nBaseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 15);
     _dio.options.receiveTimeout = const Duration(seconds: 45);
-    
+
     // Add logging and simple retry interceptor if needed
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (e, handler) async {
-        if (e.type == DioExceptionType.connectionTimeout || 
+        if (e.type == DioExceptionType.connectionTimeout ||
             e.type == DioExceptionType.sendTimeout) {
           // Could implement automatic retry here
         }
@@ -35,6 +35,8 @@ class N8nService {
       return {
         'original_text': 'This is a mock transcription of the audio chunk.',
         'translated_text': 'هذا ترجمة وهمية للمقطع الصوتي.',
+        'script': 'This is a mock transcription of the audio chunk.',
+        'translation': 'هذا ترجمة وهمية للمقطع الصوتي.',
       };
     }
 
@@ -51,7 +53,11 @@ class N8nService {
         data: formData,
       );
 
-      return response.data;
+      final data = response.data;
+      return {
+        'original_text': data['script'] ?? data['original_text'],
+        'translated_text': data['translation'] ?? data['translated_text'],
+      };
     } catch (e) {
       print("Error sending audio chunk to n8n: $e");
       rethrow;
