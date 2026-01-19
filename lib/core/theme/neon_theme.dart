@@ -51,7 +51,7 @@ class NeonTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: NeonColors.neonCyan.withOpacity(0.3),
+            color: NeonColors.neonCyan.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -86,13 +86,13 @@ class NeonTheme {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: NeonColors.neonCyan.withOpacity(0.3),
+            color: NeonColors.neonCyan.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: NeonColors.neonCyan.withOpacity(0.2),
+            color: NeonColors.neonCyan.withValues(alpha: 0.2),
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -120,7 +120,7 @@ class NeonTheme {
 
       // Divider Theme
       dividerTheme: DividerThemeData(
-        color: NeonColors.neonCyan.withOpacity(0.2),
+        color: NeonColors.neonCyan.withValues(alpha: 0.2),
         thickness: 1,
         space: 24,
       ),
@@ -142,7 +142,7 @@ class NeonTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: NeonColors.neonCyan.withOpacity(0.3),
+            color: NeonColors.neonCyan.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -184,7 +184,7 @@ class NeonTheme {
       borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
-          color: NeonColors.neonCyan.withOpacity(0.5),
+          color: NeonColors.neonCyan.withValues(alpha: 0.5),
           blurRadius: 20,
           spreadRadius: 2,
         ),
@@ -201,7 +201,7 @@ class NeonTheme {
       borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
-          color: color.withOpacity(0.5),
+          color: color.withValues(alpha: 0.5),
           blurRadius: 20,
           spreadRadius: 2,
         ),
