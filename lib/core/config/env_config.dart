@@ -14,7 +14,7 @@ class EnvConfig {
   // Helper to get full URLs
   // Production Webhook URL
   static String get n8nSttUrl =>
-      'https://nonmediative-suitably-ellen.ngrok-free.dev/webhook/neon-lecture';
+      'https://nonmediative-suitably-ellen.ngrok-free.dev/webhook-test/neon-lecture';
   static String get sttUrl => n8nSttUrl;
   static String get imagesUrl => '$n8nBaseUrl$n8nImagesEndpoint';
   static String get summaryUrl => '$n8nBaseUrl$n8nSummaryEndpoint';
