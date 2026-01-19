@@ -45,13 +45,14 @@ class NeonTheme {
       ),
 
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: NeonColors.cardBg,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
           side: BorderSide(
-            color: NeonColors.neonCyan.withValues(alpha: 0.3),
+            color:
+                Color(0x4D00FFFF), // NeonColors.neonCyan.withValues(alpha: 0.3)
             width: 1,
           ),
         ),
@@ -137,7 +138,7 @@ class NeonTheme {
       ),
 
       // Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: NeonColors.cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
