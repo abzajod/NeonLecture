@@ -5,8 +5,9 @@ window.micRecorder = {
   stream: null,
   sessionId: null,
   chunkIndex: 0,
+  mimeType: null,
 
-  start: async function(timesliceMs, onDataCallback) {
+  start: async function (timesliceMs, onDataCallback) {
     try {
       // 1. Request Microphone Access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -21,7 +22,7 @@ window.micRecorder = {
         if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = 'audio/ogg;codecs=opus'; // Firefox fallback
           if (!MediaRecorder.isTypeSupported(mimeType)) {
-             mimeType = ''; // Let browser choose default
+            mimeType = ''; // Let browser choose default
           }
         }
       }
@@ -31,6 +32,7 @@ window.micRecorder = {
 
       // 3. Initialize MediaRecorder
       this.mediaRecorder = new MediaRecorder(stream, options);
+      this.mimeType = this.mediaRecorder.mimeType || mimeType;
 
       // 4. Handle Data Available (Chunks)
       this.mediaRecorder.ondataavailable = async (event) => {
@@ -38,18 +40,18 @@ window.micRecorder = {
           const blob = event.data;
           const buffer = await blob.arrayBuffer();
           const uint8Array = new Uint8Array(buffer);
-          
+
           // Pass data back to Dart
           // onDataCallback(data, mimeType, chunkIndex, sessionId)
           if (window.onMicData) {
-             window.onMicData(uint8Array, this.mediaRecorder.mimeType, this.chunkIndex, this.sessionId);
+            window.onMicData(uint8Array, this.mimeType, this.chunkIndex, this.sessionId);
           }
           this.chunkIndex++;
         }
       };
 
       // 5. Start Recording
-      this.mediaRecorder.start(timesliceMs); 
+      this.mediaRecorder.start(timesliceMs);
       return this.sessionId;
 
     } catch (err) {
@@ -58,7 +60,7 @@ window.micRecorder = {
     }
   },
 
-  stop: function() {
+  stop: function () {
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
       this.mediaRecorder.stop();
     }
@@ -67,6 +69,7 @@ window.micRecorder = {
     }
     this.mediaRecorder = null;
     this.stream = null;
+    this.mimeType = null;
     console.log("Mic recorder stopped");
   }
 };
