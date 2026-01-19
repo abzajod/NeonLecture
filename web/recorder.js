@@ -6,6 +6,7 @@ window.micRecorder = {
   sessionId: null,
   chunkIndex: 0,
   mimeType: null,
+  recordedChunks: [],
   WEBHOOK_URL: 'https://nonmediative-suitably-ellen.ngrok-free.dev/webhook-test/neon-lecture',
 
   start: async function (timesliceMs) {
@@ -35,16 +36,18 @@ window.micRecorder = {
       // 3. Initialize MediaRecorder
       this.mediaRecorder = new MediaRecorder(stream, options);
 
-      // 4. Handle Data Available (Chunks)
-      this.mediaRecorder.ondataavailable = async (event) => {
+      // 4. Handle Data Available (Chunks) - Store chunks instead of uploading
+      this.mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
-          const blob = event.data;
-          console.log("📦 chunk", this.chunkIndex, "size:", blob.size, "bytes");
-
-          // Upload directly from JS
-          await this.uploadChunk(blob);
+          this.recordedChunks.push(event.data);
+          console.log("📦 chunk", this.chunkIndex, "size:", event.data.size, "bytes (stored)");
           this.chunkIndex++;
         }
+      };
+
+      // Handle recording stop - finalize and upload
+      this.mediaRecorder.onstop = async () => {
+        await this.finalizeRecording();
       };
 
       // 5. Start Recording with 1500ms timeslice
@@ -57,24 +60,51 @@ window.micRecorder = {
     }
   },
 
-  uploadChunk: async function (blob) {
+  finalizeRecording: async function () {
+    console.log("🏁 Finalizing recording...");
+
+    if (this.recordedChunks.length === 0) {
+      console.warn("⚠️ No audio chunks recorded");
+      return;
+    }
+
+    // Merge all chunks into a single blob
+    const fullBlob = new Blob(this.recordedChunks, { type: this.mimeType });
+
+    if (fullBlob.size === 0) {
+      console.warn("⚠️ Recording is empty (0 bytes)");
+      return;
+    }
+
+    console.log("🎯 Complete recording:", fullBlob.size, "bytes from", this.recordedChunks.length, "chunks");
+
+    // Upload the complete recording
+    await this.uploadRecording(fullBlob);
+
+    // Clear chunks after upload
+    this.recordedChunks = [];
+  },
+
+  uploadRecording: async function (blob) {
     try {
       const fd = new FormData();
-      fd.append("audio", blob, `chunk_${this.chunkIndex}.webm`);
-      fd.append("chunkIndex", String(this.chunkIndex));
+      fd.append("audio", blob, `recording_${this.sessionId}.webm`);
       fd.append("sessionId", this.sessionId);
       fd.append("mimeType", this.mimeType);
       fd.append("source_lang", "en");
       fd.append("target_lang", "ar");
+      fd.append("totalSize", String(blob.size));
 
-      console.log("🚀 POST to", this.WEBHOOK_URL, "chunk", this.chunkIndex);
+      console.log("🚀 POST complete recording to", this.WEBHOOK_URL);
+      console.log("   Size:", blob.size, "bytes");
+      console.log("   Session:", this.sessionId);
 
       const response = await fetch(this.WEBHOOK_URL, {
         method: "POST",
         body: fd
       });
 
-      console.log("✅ Response", response.status, "for chunk", this.chunkIndex);
+      console.log("✅ Response", response.status, "for complete recording");
 
       const data = await response.json();
       console.log("📝 Response data:", data);
@@ -85,13 +115,14 @@ window.micRecorder = {
       }
 
     } catch (err) {
-      console.error("❌ Upload error for chunk", this.chunkIndex, ":", err);
+      console.error("❌ Upload error for recording:", err);
     }
   },
 
   stop: function () {
     console.log("⏹️ Stopping recorder");
     if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      // This will trigger onstop which will call finalizeRecording
       this.mediaRecorder.stop();
     }
     if (this.stream) {
@@ -100,6 +131,7 @@ window.micRecorder = {
     this.mediaRecorder = null;
     this.stream = null;
     this.mimeType = null;
+    this.chunkIndex = 0;
     console.log("✅ Mic recorder stopped");
   }
 };
