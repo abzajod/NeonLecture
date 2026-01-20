@@ -58,24 +58,36 @@ class HomeScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // Hero Icon
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: NeonColors.neonGradient,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: NeonColors.neonCyan
-                                        .withValues(alpha: 0.5),
-                                    blurRadius: 40,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.mic,
-                                size: 80,
-                                color: Colors.white,
+                            GestureDetector(
+                              onTap: () {
+                                HapticUtils.mediumImpact();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const LiveLectureScreen(
+                                              saveToHistory: false)),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: NeonColors.neonGradient,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: NeonColors.neonCyan
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 40,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.mic,
+                                  size: 80,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
 
@@ -92,7 +104,8 @@ class HomeScreen extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          const LiveLectureScreen()),
+                                          const LiveLectureScreen(
+                                              saveToHistory: true)),
                                 );
                               },
                             ),

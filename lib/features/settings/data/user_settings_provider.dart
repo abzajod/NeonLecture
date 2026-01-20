@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'settings_repository.dart';
 
 /// User preferences model
 class UserSettings {
@@ -39,16 +40,54 @@ class UserSettings {
 
 /// Provider for user settings
 class UserSettingsNotifier extends StateNotifier<UserSettings> {
-  UserSettingsNotifier() : super(UserSettings());
+  final SettingsRepository _repository;
 
-  void setUiLanguage(String lang) => state = state.copyWith(uiLanguage: lang);
-  void setSourceLanguage(String lang) => state = state.copyWith(sourceLanguage: lang);
-  void setTargetLanguage(String lang) => state = state.copyWith(targetLanguage: lang);
-  void toggleSounds(bool value) => state = state.copyWith(soundsEnabled: value);
-  void toggleHaptics(bool value) => state = state.copyWith(hapticsEnabled: value);
-  void toggleAutoScroll(bool value) => state = state.copyWith(autoScroll: value);
+  UserSettingsNotifier(this._repository) : super(UserSettings()) {
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    state = _repository.loadSettings();
+  }
+
+  void _save() {
+    _repository.saveSettings(state);
+  }
+
+  void setUiLanguage(String lang) {
+    state = state.copyWith(uiLanguage: lang);
+    _save();
+  }
+
+  void setSourceLanguage(String lang) {
+    state = state.copyWith(sourceLanguage: lang);
+    _save();
+  }
+
+  void setTargetLanguage(String lang) {
+    state = state.copyWith(targetLanguage: lang);
+    _save();
+  }
+
+  void toggleSounds(bool value) {
+    state = state.copyWith(soundsEnabled: value);
+    _save();
+  }
+
+  void toggleHaptics(bool value) {
+    state = state.copyWith(hapticsEnabled: value);
+    _save();
+  }
+
+  void toggleAutoScroll(bool value) {
+    state = state.copyWith(autoScroll: value);
+    _save();
+  }
 }
 
-final userSettingsProvider = StateNotifierProvider<UserSettingsNotifier, UserSettings>((ref) {
-  return UserSettingsNotifier();
+final userSettingsProvider =
+    StateNotifierProvider<UserSettingsNotifier, UserSettings>((ref) {
+  final repository =
+      SettingsRepository(); // Ideally accessed via provider, but direct for now to match simplicity
+  return UserSettingsNotifier(repository);
 });

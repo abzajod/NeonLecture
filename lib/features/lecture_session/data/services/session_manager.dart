@@ -37,6 +37,7 @@ class SessionState {
   final List<String> transcript;
   final List<String> translatedText;
   final List<VisualAid> visualAids;
+  final bool saveToHistory;
   final String? errorMessage;
 
   SessionState({
@@ -47,6 +48,7 @@ class SessionState {
     this.transcript = const [],
     this.translatedText = const [],
     this.visualAids = const [],
+    this.saveToHistory = true,
     this.errorMessage,
   });
 
@@ -58,6 +60,7 @@ class SessionState {
     List<String>? transcript,
     List<String>? translatedText,
     List<VisualAid>? visualAids,
+    bool? saveToHistory,
     String? errorMessage,
   }) {
     return SessionState(
@@ -68,6 +71,7 @@ class SessionState {
       transcript: transcript ?? this.transcript,
       translatedText: translatedText ?? this.translatedText,
       visualAids: visualAids ?? this.visualAids,
+      saveToHistory: saveToHistory ?? this.saveToHistory,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -86,7 +90,7 @@ class SessionManager extends StateNotifier<SessionState> {
       : super(SessionState());
 
   /// Start a new lecture session
-  Future<void> startSession() async {
+  Future<void> startSession({bool saveToHistory = true}) async {
     final sessionId = const Uuid().v4();
 
     try {
@@ -108,6 +112,7 @@ class SessionManager extends StateNotifier<SessionState> {
         duration: Duration.zero,
         transcript: [],
         translatedText: [],
+        saveToHistory: saveToHistory,
       );
     } catch (e) {
       // Handle recording start error
@@ -123,6 +128,32 @@ class SessionManager extends StateNotifier<SessionState> {
     _chunkSubscription?.cancel();
 
     state = state.copyWith(isRecording: false, isPaused: false);
+
+    if (state.saveToHistory) {
+      await _saveSessionToHistory();
+    }
+  }
+
+  Future<void> _saveSessionToHistory() async {
+    try {
+      final note = LectureNote(
+        id: state.sessionId ?? "",
+        title: "Lecture on ${DateTime.now().toIso8601String()}",
+        date: DateTime.now(),
+        originalTranscript: state.transcript.join("\n"),
+        translatedTranscript: state.translatedText.join("\n"),
+        images: state.visualAids,
+        keyTerms: [], // Placeholder
+        summaryPoints: ["Main point 1", "Main point 2"], // Placeholder
+        duration: state.duration,
+        sourceLanguage: "en",
+        targetLanguage: "ar",
+      );
+
+      await _repository.saveLecture(note);
+    } catch (e) {
+      debugPrint("Error saving session: $e");
+    }
   }
 
   /// Pause current session
@@ -201,38 +232,7 @@ class SessionManager extends StateNotifier<SessionState> {
     }
   }
 
-  /// Finalize the session and generate notes
-  Future<LectureNote?> finalizeSession() async {
-    try {
-      await stopSession();
-
-      // In Phase 3, we would call:
-      // final summary = await _n8nService.generateSummary(...);
-
-      // For now, return a mock LectureNote
-      final note = LectureNote(
-        id: state.sessionId ?? "",
-        title: "Lecture on ${DateTime.now().toIso8601String()}",
-        date: DateTime.now(),
-        originalTranscript: state.transcript.join("\n"),
-        translatedTranscript: state.translatedText.join("\n"),
-        images: state.visualAids,
-        keyTerms: [], // Placeholder
-        summaryPoints: ["Main point 1", "Main point 2"], // Placeholder
-        duration: state.duration,
-        sourceLanguage: "en",
-        targetLanguage: "ar",
-      );
-
-      // Save lecture to local database
-      await _repository.saveLecture(note);
-
-      return note;
-    } catch (e) {
-      debugPrint("Error finalizing session: $e");
-      return null;
-    }
-  }
+  // finalizeSession removed as it's now integrated into stopSession
 
   void _startDurationTimer() {
     _durationTimer?.cancel();

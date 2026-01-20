@@ -9,7 +9,12 @@ import '../../../../core/theme/text_styles.dart';
 import '../../../../core/widgets/neon_button.dart';
 
 class LiveLectureScreen extends ConsumerWidget {
-  const LiveLectureScreen({super.key});
+  final bool saveToHistory;
+
+  const LiveLectureScreen({
+    super.key,
+    this.saveToHistory = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -133,7 +138,8 @@ class LiveLectureScreen extends ConsumerWidget {
               text: 'START RECORDING',
               icon: Icons.mic,
               color: NeonColors.neonCyan,
-              onPressed: () => manager.startSession(),
+              onPressed: () =>
+                  manager.startSession(saveToHistory: saveToHistory),
             )
           else ...[
             // Stop button
